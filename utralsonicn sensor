@@ -1,0 +1,89 @@
+#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int trigPin = 9;
+const int echoPin = 10;
+
+int LEDred = 8;
+int LEDgreen = 7;
+int LEDyellow = 6;
+
+int servoPin = 5;
+
+float duration, distance;
+int angle = 0;
+
+Servo myServo;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  pinMode(LEDred, OUTPUT);
+  pinMode(LEDgreen, OUTPUT);
+  pinMode(LEDyellow, OUTPUT);
+
+  myServo.attach(servoPin);
+
+  lcd.init();      
+  lcd.backlight(); 
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration * 0.0343) / 2;
+
+  if (distance <= 10) {
+    digitalWrite(LEDred, HIGH);
+    digitalWrite(LEDgreen, LOW);
+    digitalWrite(LEDyellow, LOW);
+
+    angle = 90;
+  }
+  else if (distance > 10 && distance <= 20) {
+    digitalWrite(LEDred, LOW);
+    digitalWrite(LEDgreen, LOW);
+    digitalWrite(LEDyellow, HIGH);
+
+    angle = 45;
+  }
+  else if (distance > 20) {
+    digitalWrite(LEDred, LOW);
+    digitalWrite(LEDgreen, HIGH);
+    digitalWrite(LEDyellow, LOW);
+
+    angle = 0;
+  }
+
+  myServo.write(angle);
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Dist: ");
+  lcd.print(distance);
+  lcd.print(" cm");
+
+  lcd.setCursor(0, 1);
+  lcd.print("Angle: ");
+  lcd.print(angle);
+  lcd.print((char)223); 
+
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.print(" cm | Angle: ");
+  Serial.println(angle);
+- 
+  delay(500);
+}
